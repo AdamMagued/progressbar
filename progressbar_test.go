@@ -1393,3 +1393,42 @@ func TestRateAveragingWindow(t *testing.T) {
 		t.Errorf("windowed: expected more than %d retained samples, got %d", maxLegacyRateSamples, got)
 	}
 }
+
+func TestProgressBar_AddDetail(t *testing.T) {
+	buf := strings.Builder{}
+	bar := NewOptions(100,
+		OptionSetDescription("Test"),
+		OptionSetMaxDetailRow(2),
+		OptionSetWriter(&buf),
+	)
+
+	err := bar.AddDetail("detail 1")
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "detail 1")
+}
+
+func TestProgressBar_AddDetailInvisible(t *testing.T) {
+	buf := strings.Builder{}
+	bar := NewOptions(100,
+		OptionSetDescription("Test"),
+		OptionSetVisibility(false),
+		OptionSetMaxDetailRow(2),
+		OptionSetWriter(&buf),
+	)
+
+	err := bar.AddDetail("detail message 1")
+	assert.NoError(t, err)
+
+	for i := 0; i < 50; i++ {
+		_ = bar.Add(1)
+	}
+
+	err = bar.AddDetail("detail message 2")
+	assert.NoError(t, err)
+
+	for i := 0; i < 50; i++ {
+		_ = bar.Add(1)
+	}
+
+	assert.Empty(t, buf.String())
+}
